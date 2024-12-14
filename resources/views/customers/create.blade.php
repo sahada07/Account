@@ -1,35 +1,4 @@
 
-<!-- resources/views/layouts/app.blade.php -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name', 'Accounting System') }}</title>
-    <!-- Replace Vite with CDN links -->
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<!-- rest of the layout file remains the same -->
-Which approach would you prefer? The Vite setup is recommended for production, but the CDN approach is quicker for development.
-
-Copy
-Retry
-
-
-
-Claude can make mistakes. Please double-check responses.
-
-
-
-No file chosen
-
-3.5 Sonnet
-
-Choose style
-
-Customer Create and Edit Forms
-
-<!-- resources/views/customers/create.blade.php -->
 @extends('layouts.app')
 
 @section('content')

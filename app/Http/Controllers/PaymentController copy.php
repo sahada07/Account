@@ -276,63 +276,24 @@ class PaymentController extends Controller
         return view('payments.index', compact('payments'));
     }
 
-    // public function create(Request $request)
-    // {
-    //     // Validate the request
-    //     $request->validate([
-    //         'payable_type' => 'required|in:Invoice,Bill', // Ensures only valid types
-    //         'payable_id' => 'required|integer'
-    //     ]);
-    
-    //     // Dynamically determine the model (Invoice or Bill)
-    //     $payableType = $request->payable_type;
-    //     $payableModel = $payableType === 'Invoice' ? Invoice::class : Bill::class;
-    
-    //     // Retrieve the entity using the payable_id
-    //     $payable = $payableModel::findOrFail($request->payable_id);
-    
-    //     // Check if the entity is eligible for payments
-    //     if (in_array($payable->status, ['draft', 'paid'])) {
-    //         return redirect()->route(strtolower($payableType) . 's.show', $payable->id)
-    //             ->with('error', 'Cannot record payment for this ' . strtolower($payableType) . '.');
-    //     }
-    
-    //     // Return the payment creation view
-    //     return view('payments.create', [
-    //         'payable' => $payable,
-    //         'payableType' => $payableType
-    //     ]);
-    // }
-    
-
     public function create(Request $request)
-{
-    // Validate the request
-    $request->validate([
-        'payable_type' => 'required|in:Invoice,Bill', // Ensures only valid types
-        'payable_id' => 'required|integer'           // Ensures the ID is valid
-    ]);
+    {
+        // Validate the invoice_id from the request
+        $request->validate([
+            'invoice_id' => 'required|exists:invoices,id'
+        ]);
 
-    // Dynamically determine the model (Invoice or Bill)
-    $payableType = $request->payable_type;
-    $payableModel = $payableType === 'Invoice' ? Invoice::class : Bill::class;
+        // Get the invoice
+        $invoice = Invoice::findOrFail($request->invoice_id);
 
-    // Retrieve the entity using the payable_id
-    $payable = $payableModel::findOrFail($request->payable_id);
+        // Check if invoice can accept payments
+        if ($invoice->status === 'draft' || $invoice->status === 'paid') {
+            return redirect()->route('invoices.show', $invoice)
+                ->with('error', 'Cannot record payment for this invoice.');
+        }
 
-    // Check if the entity is eligible for payments
-    if (in_array($payable->status, ['draft', 'paid'])) {
-        return redirect()->route(strtolower($payableType) . 's.show', $payable->id)
-            ->with('error', 'Cannot record payment for this ' . strtolower($payableType) . '.');
+        return view('payments.create', compact('invoice'));
     }
-
-    // Pass the payable entity (bill or invoice) and type to the view
-    return view('payments.create', [
-        'payable' => $payable,
-        'payableType' => $payableType
-    ]);
-}
-
 
     // public function store(Request $request)
     // {
@@ -464,147 +425,95 @@ class PaymentController extends Controller
     //     }
     // }
 
-//worked by chart able to access page for bill or invoice
-    // public function store(Request $request)
-    // {
-    //     try {
-    //         DB::beginTransaction();
-    
-    //         // Validate the incoming request
-    //         $validated = $request->validate([
-    //             'payable_type' => 'required|in:Invoice,Bill', // Invoice or Bill
-    //             'payable_id' => 'required|integer',          // ID of the payable entity
-    //             'amount' => 'required|numeric|min:0.01',    // Amount to pay
-    //             'payment_date' => 'required|date',          // Date of payment
-    //             'payment_method' => 'required|string|in:cash,bank_transfer,check,credit_card',
-    //             'reference_number' => 'nullable|string|max:50',
-    //             'notes' => 'nullable|string|max:500'
-    //         ]);
-    
-    //         // Dynamically fetch the payable model (Invoice or Bill)
-    //         $payableType = $validated['payable_type'];
-    //         $payableModel = $payableType === 'Invoice' ? Invoice::class : Bill::class;
-    //         $payable = $payableModel::findOrFail($validated['payable_id']);
-    
-    //         // Check if payment amount exceeds the balance due
-    //         if ($validated['amount'] > $payable->balance_due) {
-    //             throw new \Exception('Payment amount cannot exceed balance due.');
-    //         }
-    
-    //         // Record the payment
-    //         $payment = Payment::create([
-    //             'payment_number' => $this->generatePaymentNumber(),
-    //             'payable_type' => $payableType,
-    //             'payable_id' => $payable->id,
-    //             'amount' => $validated['amount'],
-    //             'payment_date' => $validated['payment_date'],
-    //             'payment_method' => $validated['payment_method'],
-    //             'reference_number' => $validated['reference_number'],
-    //             'notes' => $validated['notes'],
-    //             'created_by' => auth()->id() ?? 1
-    //         ]);
-    
-    //         // Update the payable entity (invoice or bill)
-    //         $totalPaid = $payable->payments()->sum('amount');
-    //         $newBalance = $payable->total - $totalPaid;
-    //         $newStatus = $this->determinePayableStatus($totalPaid, $payable->total);
-    
-    //         $payable->update([
-    //             'amount_paid' => $totalPaid,
-    //             'balance_due' => $newBalance,
-    //             'status' => $newStatus
-    //         ]);
-    
-    //         DB::commit();
-    
-    //         return redirect()->route(strtolower($payableType) . 's.show', $payable->id)
-    //             ->with('success', ucfirst($payableType) . ' payment recorded successfully.');
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         \Log::error('Payment Error: ' . $e->getMessage());
-    //         return redirect()->back()
-    //             ->withInput()
-    //             ->with('error', 'An error occurred: ' . $e->getMessage());
-    //     }
-    // }
-    
 
     public function store(Request $request)
-    {
-        try {
-            DB::beginTransaction();
-    
-            // Validate the request
-            $validated = $request->validate([
-                'payable_type' => 'required|in:Invoice,Bill',
-                'payable_id' => 'required|integer',
-                'amount' => 'required|numeric|min:0.01',
-                'payment_date' => 'required|date',
-                'payment_method' => 'required|string|in:cash,bank_transfer,check,credit_card',
-                'reference_number' => 'nullable|string|max:50',
-                'notes' => 'nullable|string|max:500'
-            ]);
-    
-            // Dynamically resolve the payable model
-            $payableType = $validated['payable_type'] === 'Invoice' ? Invoice::class : Bill::class;
-            $payable = $payableType::findOrFail($validated['payable_id']);
-    
-            // Validate payment amount
-            if ($validated['amount'] > $payable->balance_due) {
-                throw new \Exception('Payment amount cannot exceed balance due.');
-            }
-    
-            // Create the payment
-            $payment = Payment::create([
-                'payment_number' => $this->generatePaymentNumber(),
-                'payable_type' => $payableType,
-                'payable_id' => $payable->id,
-                'amount' => $validated['amount'],
-                'payment_date' => $validated['payment_date'],
-                'payment_method' => $validated['payment_method'],
-                'reference_number' => $validated['reference_number'],
-                'notes' => $validated['notes'],
-                'created_by' => auth()->id() ?? 1 // Default to admin for testing
-            ]);
-    
-            // Update the payable amounts and status
-            $totalPaid = $payable->payments()->sum('amount');
-            $balanceDue = $payable->total - $totalPaid;
-    
-            // Determine the new status
-            $newStatus = $this->determinePayableStatus($totalPaid, $payable->total);
-    
-            $payable->update([
-                'amount_paid' => $totalPaid,
-                'balance_due' => $balanceDue,
-                'status' => $newStatus
-            ]);
-    
-            DB::commit();
-    
-            // Redirect to the appropriate view
-            $redirectRoute = $validated['payable_type'] === 'Invoice' ? 'invoices.show' : 'bills.show';
-            return redirect()->route($redirectRoute, $payable->id)
-                ->with('success', 'Payment recorded successfully.');
-    
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Payment Error: ' . $e->getMessage());
+{
 
-            \Log::info('Payment Details', [
-                'Total Paid' => $totalPaid,
-                'Balance Due' => $balanceDue,
-                'Payable Type' => $payableType,
-                'New Status' => $newStatus
-            ]);
-            
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'An error occurred: ' . $e->getMessage());
-        }
+    if (!class_exists(\App\Models\Invoice::class)) {
+        throw new \Exception('Invoice class not found.');
     }
-    
-    
+    \Log::info('Invoice Class Path', ['path' => base_path('app/Models/Invoice.php')]);
+
+
+    try {
+        DB::beginTransaction();
+
+        // Validate request
+        $validated = $request->validate([
+            'payable_type' => 'required|in:Invoice,Bill',
+            'payable_id' => 'required|integer',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|string|in:cash,bank_transfer,check,credit_card',
+            'reference_number' => 'nullable|string|max:50',
+            'notes' => 'nullable|string|max:500'
+        ]);
+
+        // Get the invoice
+        $invoice = Invoice::findOrFail($validated['payable_id']);
+
+        // Validate payment amount doesn't exceed balance due
+        if ($validated['amount'] > $invoice->balance_due) {
+            throw new \Exception('Payment amount cannot exceed balance due.');
+        }
+
+        // Create payment
+        $payment = new Payment();
+        $payment->payment_number = $this->generatePaymentNumber();
+        $payment->payable_type = 'App\Models\Invoice';
+        $payment->payable_id = $validated['payable_id'];
+        $payment->amount = $validated['amount'];
+        $payment->payment_date = $validated['payment_date'];
+        $payment->payment_method = $validated['payment_method'];
+        $payment->reference_number = $validated['reference_number'];
+        $payment->notes = $validated['notes'];
+        $payment->created_by = 1;
+
+        // Save the payment
+        $payment->save();
+
+        // Recalculate invoice totals
+        $allPayments = Payment::where('payable_type', 'App\Models\Invoice')
+                             ->where('payable_id', $invoice->id)
+                             ->sum('amount');
+        
+
+
+
+                             
+        // Add the current payment amount
+        $totalPaid = $allPayments;
+        $newBalance = $invoice->total - $totalPaid;
+
+        // Determine new status
+        if ($newBalance == 0) {
+            $newStatus = 'paid';
+        } elseif ($totalPaid > 0) {
+            $newStatus = 'sent'; // Since 'partial' isn't a valid status
+        } else {
+            $newStatus = 'sent';
+        }
+
+        // Update invoice
+        $invoice->amount_paid = $totalPaid;
+        $invoice->balance_due = $newBalance;
+        $invoice->status = $newStatus;
+        $invoice->save();
+
+        DB::commit();
+
+        return redirect()->route('invoices.show', $validated['payable_id'])
+            ->with('success', 'Payment recorded successfully.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Payment Error: ' . $e->getMessage());
+        return redirect()->back()
+            ->withInput()
+            ->with('error', $e->getMessage());
+    }
+}
+
 
   //chat
 //   public function store(Request $request)
@@ -931,28 +840,17 @@ class PaymentController extends Controller
     //     return 'sent'; // or 'received' for bills
     // }
 
-//     private function determinePayableStatus($totalPaid, $total)
-// {
-//     \Log::info('Determining status', ['totalPaid' => $totalPaid, 'total' => $total]);
-
-//     if ($totalPaid >= $total) {
-//         return 'paid';
-//     } elseif ($totalPaid > 0 && $totalPaid < $total) {
-//         return 'partial';
-//     }
-//     return 'sent';
-// }
-
-private function determinePayableStatus($totalPaid, $total)
+    private function determinePayableStatus($totalPaid, $total)
 {
+    \Log::info('Determining status', ['totalPaid' => $totalPaid, 'total' => $total]);
+
     if ($totalPaid >= $total) {
         return 'paid';
     } elseif ($totalPaid > 0 && $totalPaid < $total) {
-        return 'partial'; // Handle partial payments properly
+        return 'partial';
     }
-    return 'sent'; // Default for unpaid amounts
+    return 'sent';
 }
-
 
 
 

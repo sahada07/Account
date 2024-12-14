@@ -22,6 +22,11 @@
                             Edit Payment
                         </a>
                     @endif
+
+                    <a href="{{ route('payments.pdf', $payment) }}" 
+   class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+    Download Receipt
+</a>
                 </div>
             </div>
 

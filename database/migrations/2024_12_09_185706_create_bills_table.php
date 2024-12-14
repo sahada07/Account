@@ -29,7 +29,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('vendor_id')->references('id')->on('vendors');
-            $table->foreign('created_by')->references('id')->on('users');
+          //  $table->foreign('created_by')->references('id')->on('users');
         });
     }
 

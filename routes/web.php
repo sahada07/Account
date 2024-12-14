@@ -7,10 +7,11 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\PaymentController;
 
-// Dashboard
-Route::get('/', function () {
-    return view('dashboard');
-})->name('dashboard');
+use App\Http\Controllers\DashboardController;
+
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+
 
 // Customers
 Route::controller(CustomerController::class)->group(function () {
@@ -48,7 +49,7 @@ Route::controller(PaymentController::class)->group(function () {
     Route::delete('/payments/{payment}', 'destroy')->name('payments.destroy');
     Route::get('/payments/payable-details', 'getPayableDetails')->name('payments.payable-details');
 });
-//Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+//Route::get('/dash', [DashController::class])->name('dash');
 
 // Bills
 Route::controller(BillController::class)->group(function () {
@@ -74,3 +75,24 @@ Route::controller(VendorController::class)->group(function () {
     Route::delete('/vendors/{vendor}', 'destroy')->name('vendors.destroy');
     Route::get('/vendors/{vendor}/statements', 'statements')->name('vendors.statements');
 });
+
+
+use App\Http\Controllers\ReportController;
+
+// Reports
+Route::prefix('reports')->name('reports.')->group(function () {
+    Route::get('/', [ReportController::class, 'index'])->name('index');
+    Route::get('/income-statement', [ReportController::class, 'incomeStatement'])->name('income-statement');
+    Route::get('/accounts-receivable', [ReportController::class, 'accountsReceivableAging'])->name('accounts-receivable');
+    Route::get('/accounts-payable', [ReportController::class, 'accountsPayableAging'])->name('accounts-payable');
+    Route::get('/tax-summary', [ReportController::class, 'taxSummary'])->name('tax-summary');
+    Route::get('/customer-bala\nces', [ReportController::class, 'customerBalances'])->name('customer-balances');
+    Route::get('/vendor-balances', [ReportController::class, 'vendorBalances'])->name('vendor-balances');
+});
+
+
+use App\Http\Controllers\PDFController;
+// PDF Routes
+Route::get('/invoices/{invoice}/pdf', [PDFController::class, 'generateInvoicePDF'])->name('invoices.pdf');
+Route::get('/bills/{bill}/pdf', [PDFController::class, 'generateBillPDF'])->name('bills.pdf');
+Route::get('/payments/{payment}/pdf', [PDFController::class, 'generatePaymentReceiptPDF'])->name('payments.pdf');

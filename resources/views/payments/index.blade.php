@@ -112,12 +112,14 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($payment->payable_type === 'App\Models\Invoice')
                                         <a href="{{ route('invoices.show', $payment->payable_id) }}" class="text-blue-600 hover:text-blue-900">
-                                            {{ $payment->payable->invoice_number }}
+                                            {{ $payment->payable->invoice_number ?? 'Invoice Not Found' }}
+                                        </a>
+                                    @elseif($payment->payable_type === 'App\Models\Bill')
+                                        <a href="{{ route('bills.show', $payment->payable_id) }}" class="text-blue-600 hover:text-blue-900">
+                                            {{ $payment->payable->bill_number ?? 'Bill Not Found' }}
                                         </a>
                                     @else
-                                        <a href="{{ route('bills.show', $payment->payable_id) }}" class="text-blue-600 hover:text-blue-900">
-                                            {{ $payment->payable->bill_number }}
-                                        </a>
+                                        <span class="text-gray-500">Unknown Payable</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
