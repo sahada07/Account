@@ -11,32 +11,60 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // public function index(Request $request)
+    // {
+    //     $query = Customer::query();
+
+    //     // Search functionality
+    //     if ($request->has('search')) {
+    //         $search = $request->get('search');
+    //         $query->where(function($q) use ($search) {
+    //             $q->where('name', 'like', "%{$search}%")
+    //               ->orWhere('email', 'like', "%{$search}%")
+    //               ->orWhere('phone', 'like', "%{$search}%");
+    //         });
+    //     }
+
+    //     // Filter by status
+    //     if ($request->has('status')) {
+    //         $query->where('is_active', $request->status === 'active');
+    //     }
+
+    //     $customers = $query->latest()
+    //                       ->withCount('invoices')
+    //                       ->withSum('invoices', 'balance_due')
+    //                       ->paginate(10);
+
+    //     return view('customers.index', compact('customers'));
+    // }
+
     public function index(Request $request)
-    {
-        $query = Customer::query();
+{
+    $query = Customer::query();
 
-        // Search functionality
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by status
-        if ($request->has('status')) {
-            $query->where('is_active', $request->status === 'active');
-        }
-
-        $customers = $query->latest()
-                          ->withCount('invoices')
-                          ->withSum('invoices', 'balance_due')
-                          ->paginate(10);
-
-        return view('customers.index', compact('customers'));
+    // Search functionality
+    if ($request->filled('search')) {
+        $search = $request->get('search');
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+        });
     }
+
+    // Filter by status
+    if ($request->filled('status')) {
+        $query->where('is_active', $request->status === 'active');
+    }
+
+    $customers = $query->latest()
+        ->withCount('invoices')
+        ->withSum('invoices', 'balance_due')
+        ->paginate(10);
+
+    return view('customers.index', compact('customers'));
+}
+
 
     /**
      * Show the form for creating a new resource.
@@ -106,7 +134,7 @@ class CustomerController extends Controller
             'address' => 'nullable|string|max:500',
             'tax_number' => 'nullable|string|max:50',
             'is_active' => 'boolean'
-        ]);
+        ]); 
 
         $customer->update($validated);
 

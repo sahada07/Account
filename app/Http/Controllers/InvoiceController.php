@@ -306,38 +306,74 @@ use PDF;
 
 class InvoiceController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $query = Invoice::with(['customer', 'createdBy']);
+
+    //     // Search functionality
+    //     if ($request->has('search')) {
+    //         $search = $request->get('search');
+    //         $query->where(function($q) use ($search) {
+    //             $q->where('invoice_number', 'like', "%{$search}%")
+    //               ->orWhereHas('customer', function($q) use ($search) {
+    //                   $q->where('name', 'like', "%{$search}%");
+    //               });
+    //         });
+    //     }
+
+    //     // Filter by status
+    //     if ($request->has('status')) {
+    //         $query->where('status', $request->status);
+    //     }
+
+    //     // Filter by date range
+    //     if ($request->has('start_date')) {
+    //         $query->whereDate('invoice_date', '>=', $request->start_date);
+    //     }
+    //     if ($request->has('end_date')) {
+    //         $query->whereDate('invoice_date', '<=', $request->end_date);
+    //     }
+
+    //     $invoices = $query->latest()->paginate(10);
+
+    //     return view('invoices.index', compact('invoices'));
+    // }
+
     public function index(Request $request)
     {
         $query = Invoice::with(['customer', 'createdBy']);
-
+    
         // Search functionality
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->get('search')) {
             $search = $request->get('search');
             $query->where(function($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
                   ->orWhereHas('customer', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
                   });
             });
         }
-
+    
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->get('status')) {
             $query->where('status', $request->status);
         }
-
+    
         // Filter by date range
-        if ($request->has('start_date')) {
+        if ($request->has('start_date') && $request->get('start_date')) {
             $query->whereDate('invoice_date', '>=', $request->start_date);
         }
-        if ($request->has('end_date')) {
+        if ($request->has('end_date') && $request->get('end_date')) {
             $query->whereDate('invoice_date', '<=', $request->end_date);
         }
-
+    
         $invoices = $query->latest()->paginate(10);
-
+    
         return view('invoices.index', compact('invoices'));
     }
+    
+
 
     public function create()
     {

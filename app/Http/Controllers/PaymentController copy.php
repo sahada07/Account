@@ -247,34 +247,66 @@ DB::enableQueryLog();
 
 class PaymentController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $query = Payment::with(['payable', 'createdBy']);
+
+    //     // Search functionality
+    //     if ($request->has('search')) {
+    //         $search = $request->get('search');
+    //         $query->where('payment_number', 'like', "%{$search}%")
+    //               ->orWhere('reference_number', 'like', "%{$search}%");
+    //     }
+
+    //     // Filter by date range
+    //     if ($request->has('start_date')) {
+    //         $query->whereDate('payment_date', '>=', $request->start_date);
+    //     }
+    //     if ($request->has('end_date')) {
+    //         $query->whereDate('payment_date', '<=', $request->end_date);
+    //     }
+
+    //     // Filter by payment method
+    //     if ($request->has('payment_method')) {
+    //         $query->where('payment_method', $request->payment_method);
+    //     }
+
+    //     $payments = $query->latest()->paginate(10);
+
+    //     return view('payments.index', compact('payments'));
+    // }
+
+
     public function index(Request $request)
-    {
-        $query = Payment::with(['payable', 'createdBy']);
+{
+    $query = Payment::with(['payable', 'createdBy']);
 
-        // Search functionality
-        if ($request->has('search')) {
-            $search = $request->get('search');
-            $query->where('payment_number', 'like', "%{$search}%")
-                  ->orWhere('reference_number', 'like', "%{$search}%");
-        }
-
-        // Filter by date range
-        if ($request->has('start_date')) {
-            $query->whereDate('payment_date', '>=', $request->start_date);
-        }
-        if ($request->has('end_date')) {
-            $query->whereDate('payment_date', '<=', $request->end_date);
-        }
-
-        // Filter by payment method
-        if ($request->has('payment_method')) {
-            $query->where('payment_method', $request->payment_method);
-        }
-
-        $payments = $query->latest()->paginate(10);
-
-        return view('payments.index', compact('payments'));
+    // Search by payment number or reference number
+    if ($request->has('search') && $request->get('search')) {
+        $search = $request->get('search');
+        $query->where('payment_number', 'like', "%{$search}%")
+              ->orWhere('reference_number', 'like', "%{$search}%");
     }
+
+    // Filter by payment method
+    if ($request->has('payment_method') && $request->get('payment_method')) {
+        $query->where('payment_method', $request->payment_method);
+    }
+
+    // Filter by date range
+    if ($request->has('start_date') && $request->get('start_date')) {
+        $query->whereDate('payment_date', '>=', $request->start_date);
+    }
+    if ($request->has('end_date') && $request->get('end_date')) {
+        $query->whereDate('payment_date', '<=', $request->end_date);
+    }
+
+    // Paginate results
+    $payments = $query->latest()->paginate(10);
+
+    return view('payments.index', compact('payments'));
+}
+
 
     public function create(Request $request)
     {

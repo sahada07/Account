@@ -161,7 +161,7 @@
             </div>
 
             <!-- Record Payment Button -->
-            @if($invoice->status !== 'paid' && $invoice->status !== 'draft')
+            @if(($invoice->status !== 'paid' && $invoice->status !== 'draft')&& Auth::user()->role !=='accountant')
                 <div class="mt-6">
                     <a href="{{ route('payments.create', ['payable_type' => 'Invoice', 'payable_id' => $invoice->id]) }}"
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">

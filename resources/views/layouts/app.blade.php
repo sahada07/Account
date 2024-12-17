@@ -26,11 +26,24 @@
                         <a href="{{ route('bills.index') }}" class="nav-link">Bills</a>
                         <a href="{{ route('vendors.index') }}" class="nav-link">Vendors</a>
                         <a href="{{ route('payments.index') }}" class="nav-link">Payments</a>
+                        <a href="{{ route('reports.index') }}" class="nav-link">Reportd</a>
+                        <a href="{{ route('users.index') }}" class="nav-link">Users</a>
                     </div>
                 </div>
+             <!-- Add logout section -->
+             <div class="flex items-center">
+                @auth
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="nav-link text-red-600 hover:text-red-800">
+                        Logout
+                    </button>
+                </form>
+                @endauth
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <main class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

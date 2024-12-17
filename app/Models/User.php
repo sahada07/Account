@@ -2,47 +2,65 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    // Role check methods
+    public function isAdmin()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->role === 'admin';
+    }
+
+    public function isStaff()
+    {
+        return $this->role === 'staff';
+    }
+
+    public function isAccount()
+    {
+        return $this->role === 'accountant';
+    }
+
+    // Permission check methods
+    public function canManageUsers()
+    {
+        return $this->isAdmin();
+    }
+
+    public function canDelete()
+    {
+        return $this->isAdmin() || $this->isStaff();
+    }
+
+    public function canEdit()
+    {
+        return $this->isAdmin() || $this->isStaff();
+    }
+
+    public function canCreate()
+    {
+        return $this->isAdmin() || $this->isStaff();
+    }
+
+    public function canViewDetails()
+    {
+        return true; // All roles can view details
     }
 }

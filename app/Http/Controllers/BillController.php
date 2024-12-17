@@ -9,12 +9,45 @@ use Illuminate\Support\Facades\DB;
 
 class BillController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $query = Bill::with(['vendor', 'createdBy']);
+
+    //     // Search functionality
+    //     if ($request->has('search')) {
+    //         $search = $request->get('search');
+    //         $query->where(function($q) use ($search) {
+    //             $q->where('bill_number', 'like', "%{$search}%")
+    //               ->orWhereHas('vendor', function($q) use ($search) {
+    //                   $q->where('name', 'like', "%{$search}%");
+    //               });
+    //         });
+    //     }
+
+    //     // Filter by status
+    //     if ($request->has('status')) {
+    //         $query->where('status', $request->status);
+    //     }
+
+    //     // Filter by date range
+    //     if ($request->has('start_date')) {
+    //         $query->whereDate('bill_date', '>=', $request->start_date);
+    //     }
+    //     if ($request->has('end_date')) {
+    //         $query->whereDate('bill_date', '<=', $request->end_date);
+    //     }
+
+    //     $bills = $query->latest()->paginate(10);
+
+    //     return view('bills.index', compact('bills'));
+    // }
+
     public function index(Request $request)
     {
         $query = Bill::with(['vendor', 'createdBy']);
-
+    
         // Search functionality
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->get('search')) {
             $search = $request->get('search');
             $query->where(function($q) use ($search) {
                 $q->where('bill_number', 'like', "%{$search}%")
@@ -23,25 +56,27 @@ class BillController extends Controller
                   });
             });
         }
-
+    
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->get('status')) {
             $query->where('status', $request->status);
         }
-
+    
         // Filter by date range
-        if ($request->has('start_date')) {
+        if ($request->has('start_date') && $request->get('start_date')) {
             $query->whereDate('bill_date', '>=', $request->start_date);
         }
-        if ($request->has('end_date')) {
+        if ($request->has('end_date') && $request->get('end_date')) {
             $query->whereDate('bill_date', '<=', $request->end_date);
         }
-
+    
+        // Paginate results
         $bills = $query->latest()->paginate(10);
-
+    
         return view('bills.index', compact('bills'));
     }
-
+    
+    
     public function create()
     {
         $vendors = Vendor::where('is_active', true)

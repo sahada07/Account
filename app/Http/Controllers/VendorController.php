@@ -8,32 +8,59 @@ use Illuminate\Support\Facades\DB;
 
 class VendorController extends Controller
 {
+    // public function index(Request $request)
+    // {
+    //     $query = Vendor::query();
+
+    //     // Search functionality
+    //     if ($request->has('search')) {
+    //         $search = $request->get('search');
+    //         $query->where(function($q) use ($search) {
+    //             $q->where('name', 'like', "%{$search}%")
+    //               ->orWhere('email', 'like', "%{$search}%")
+    //               ->orWhere('phone', 'like', "%{$search}%");
+    //         });
+    //     }
+
+    //     // Filter by status
+    //     if ($request->has('status')) {
+    //         $query->where('is_active', $request->status === 'active');
+    //     }
+
+    //     $vendors = $query->latest()
+    //                     ->withCount('bills')
+    //                     ->withSum('bills', 'balance_due')
+    //                     ->paginate(10);
+
+    //     return view('vendors.index', compact('vendors'));
+    // }
+
     public function index(Request $request)
     {
-        $query = Vendor::query();
-
+        $query = Vendor::withCount('bills')->withSum('bills', 'balance_due');
+    
         // Search functionality
-        if ($request->has('search')) {
+        if ($request->has('search') && $request->get('search')) {
             $search = $request->get('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('phone', 'like', "%{$search}%");
             });
         }
-
+    
         // Filter by status
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->get('status')) {
             $query->where('is_active', $request->status === 'active');
         }
-
-        $vendors = $query->latest()
-                        ->withCount('bills')
-                        ->withSum('bills', 'balance_due')
-                        ->paginate(10);
-
+    
+        // Pagination
+        $vendors = $query->latest()->paginate(10);
+    
         return view('vendors.index', compact('vendors'));
     }
+    
+
 
     public function create()
     {
